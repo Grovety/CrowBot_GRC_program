@@ -27,6 +27,9 @@ You can use two modes to control CrowBot-BOLT:
 ![RCax](https://github.com/user-attachments/assets/df23ef1b-fbf7-4044-8efd-d63a35861690)
 
 ## Voice Control
+
+Demo: https://youtu.be/RoclNdVzP7A
+
 The board "listens" to user commands through its built-in microphones and recognizes them using a neural network. The recognized command is transmitted to CrowBOT.
 
 ### Commands
@@ -48,6 +51,8 @@ The board "listens" to user commands through its built-in microphones and recogn
 | **PLAY MUSIC**     | The robot plays a preset melody. |  
 
 ## Tilt mode
+
+Demo: https://youtu.be/FIsmTgkFIoI
 
 To activate tilt control mode, say 'Manual Control' or press the USER button. 
 
