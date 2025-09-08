@@ -56,37 +56,100 @@ const int righttrun_Pin = 15;
 const int Photodiode_R = 34, Photodiode_L = 35;  //Light seeking pin
 int Ultrasonic_Pin = 27, Button_pin = 18;        //Ultrasonic and switch key pins
 int QTI_Max, QTI_L = 39, QTI_R = 36;             //Line patrol pin
-static int state_L, state_N;                     //Infrared remote control data recording
+static int state_L;
+uint32_t state_N;                     //Infrared remote control data recording
 char LU[10];                                     //Save ultrasonic distance data
 std::string value;
 BLEClient* pClient = NULL;
 BLERemoteService* pRemoteService = NULL;
-#define G4 392
-#define A4 440
-#define B4 494
-#define C5 523
-#define D5 587
-#define E5 659
-#define F5 698
-#define G5 784
-int Tone[] = { B4, B4, B4, B4, B4, B4,
-               B4, D5, G4, A4, B4,
-               C5, C5, C5, C5, C5, B4, B4, B4,
-               D5, D5, C5, A4, G4, G5
+#define  G4 392
+#define  A4 440
+#define  B4 494
+#define  C5 523
+#define  D5 587
+#define  E5 659
+#define  F5 698
+#define  G5 784
+#define C4 262
+#define D4 294
+#define E4 330
+#define F4 349
+int Tone[] = { 
              };
-double Time[] = { 0.25, 0.25, 0.5, 0.25, 0.25, 0.5,
-                  0.25, 0.25, 0.375, 0.125, 1,
-                  0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25,
-                  0.25, 0.25, 0.25, 0.25, 0.5, 0.5
-                };
+float Time[] = {
+               }; 
 int Tone_length = sizeof(Tone) / sizeof(Tone[0]);
 SemaphoreHandle_t xPlayMusicSemaphore;
 SemaphoreHandle_t xDisconnectedSemaphore;
 MessageBufferHandle_t xGrcCmdBuffer;
 
+typedef struct {
+  const int* tones;     
+  const float* times;   
+  int length;           
+} Melody;
+
+
+const int happy_tones[] = {
+  G4, G4, A4, G4, C5, B4,
+  G4, G4, A4, G4, D5, C5,
+  G4, G4, G5, E5, C5, B4, A4,
+  F5, F5, E5, C5, D5, C5
+};
+
+const float happy_times[] = {
+  0.5,0.5,1.0,1.0,1.0,2.0,
+  0.5,0.5,1.0,1.0,1.0,2.0,
+  0.5,0.5,1.0,1.0,1.0,1.0,2.0,
+  0.5,0.5,1.0,1.0,1.0,2.0
+};
+
+
+const int twinkle_tones[] = {
+  C4,C4,G4,G4,A4,A4,G4,
+  F4,F4,E4,E4,D4,D4,C4
+};
+
+const float twinkle_times[] = {
+  0.5,0.5,0.5,0.5,0.5,0.5,1.0,
+  0.5,0.5,0.5,0.5,0.5,0.5,1.0
+};
+
+const int main_tones[] = {
+    B4, B4, B4, B4, B4, B4,
+    B4, D5, G4, A4, B4, C5,
+    C5, C5, C5, C5, B4, B4, B4, D5,
+    D5, C5, A4, G4, G5
+};
+
+const float main_times[] = {
+    0.25, 0.25, 0.5, 0.25, 0.25, 0.5,
+    0.25, 0.25, 0.375, 0.125, 1, 0.25,
+    0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25,
+    0.25, 0.25, 0.25, 0.5, 0.5
+};
+Melody melodies[] = {
+  { happy_tones, happy_times, sizeof(happy_tones)/sizeof(happy_tones[0]) },
+  { twinkle_tones, twinkle_times, sizeof(twinkle_tones)/sizeof(twinkle_tones[0]) },
+  {main_tones, main_times, sizeof(main_tones)/sizeof(main_tones[0])}
+};
+
+// ====== music -> dance communication ======
+typedef struct {
+  int freq;          
+  int duration_ms;   
+} MusicNoteEvent;
+
+QueueHandle_t xMusicQueue;
+volatile bool dance_mode = false; 
+
+
+
+const int melodyCount = sizeof(melodies) / sizeof(melodies[0]);
+
 #define MAX_GRC_MSG_LEN 20
 
-#define MOTOR_MIN_VALUE 30
+#define MOTOR_MIN_VALUE 15
 #define MOTOR_MAX_VALUE 255
 
 template<class T>
@@ -108,6 +171,18 @@ void led_callback()  //Callback function
 {
   FastLED.show();
 }
+//Variables for the CalcTurnTime function
+const int  baseSpeed   = 100;       
+const float msPerDeg   = 2.55f;     
+const float overheadMs = 0.0f;      
+const int Speed        = 150;
+
+
+const int pauseTime    = 300;      
+int calcTurnTime(int angle) {
+  float t90 = overheadMs + msPerDeg * (baseSpeed / float(Speed)) * 90.0f;
+  return int(t90 * (angle / 90.0f) + 0.5f);
+}
 
 static bool moving_backwards = false;
 void buzzer_callback()  //Callback function
@@ -119,21 +194,75 @@ void buzzer_callback()  //Callback function
   }
 }
 
-void play_music_task(void*arg)
-{
-  for (;;) {
-    if (xSemaphoreTake(xPlayMusicSemaphore, portMAX_DELAY) == pdTRUE)
-    {
-      if (!moving_backwards) {
-        for (int i = 0; i < Tone_length; i++) {          //Buzzer
-          ledcWriteTone(2, Tone[i]);                     //Buzzer
-          delay(Time[i] * 1000);
+void play_music_task(void *pvParameters) {
+  while (true) {
+    if (xSemaphoreTake(xPlayMusicSemaphore, portMAX_DELAY) == pdTRUE) {
+      int index = random(0, melodyCount);
+      Melody m = melodies[index];
+
+      for (int i = 0; i < m.length; i++) {
+        int freq = m.tones[i];
+        int dur_ms = int(m.times[i] * 1000.0f);
+
+        MusicNoteEvent ev = { freq, dur_ms };
+        if (xMusicQueue != NULL) {
+          xQueueSend(xMusicQueue, &ev, pdMS_TO_TICKS(10)); 
         }
-        ledcWrite(2, 0);  //trun off Buzzer
+
+        ledcWriteTone(33, freq);
+        vTaskDelay(pdMS_TO_TICKS(dur_ms));
+      }
+      ledcWriteTone(33, 0); 
+      if (xMusicQueue != NULL) {
+        MusicNoteEvent evEnd = { 0, 0 };
+        xQueueSend(xMusicQueue, &evEnd, pdMS_TO_TICKS(10));
       }
     }
   }
 }
+void dance_task(void *pvParameters) {
+  MusicNoteEvent ev;
+  for (;;) {
+    if (xQueueReceive(xMusicQueue, &ev, portMAX_DELAY) == pdTRUE) {
+      if (!dance_mode || ev.freq == 0) {
+        if (ev.duration_ms > 0) vTaskDelay(pdMS_TO_TICKS(ev.duration_ms));
+        Motor(0,0,0,0);
+        fill_solid(leds, 4, CRGB::Black);
+        FastLED.show();
+        continue;
+      }
+      if (ev.freq < 300) {
+        // heavy step forward + flash
+        Motor(200,0,200,0);
+        fill_solid(leds, 4, CRGB::Blue);
+        FastLED.show();
+        vTaskDelay(pdMS_TO_TICKS(std::min(ev.duration_ms, 400)));
+        Motor(0,0,0,0);
+      } else if (ev.freq < 600) {
+        // spin right a little
+        Motor(180,0,0,180);
+        fill_solid(leds, 4, CRGB::Green);
+        FastLED.show();
+        vTaskDelay(pdMS_TO_TICKS(std::min(ev.duration_ms, 300)));
+        Motor(0,0,0,0);
+      } else {
+        // wiggle / little jumps + bright flash
+        for (int k=0; k<3 && k*100 < ev.duration_ms; ++k) {
+          Motor(200,0,200,0);
+          fill_solid(leds, 4, CRGB::White);
+          FastLED.show();
+          vTaskDelay(pdMS_TO_TICKS(80));
+          Motor(0,0,0,0);
+          fill_solid(leds, 4, CRGB::Black);
+          FastLED.show();
+          vTaskDelay(pdMS_TO_TICKS(60));
+        }
+      }
+      vTaskDelay(pdMS_TO_TICKS(10));
+    }
+  }
+}
+
 
 void grc_cmd_task(void*arg)
 {
@@ -169,9 +298,8 @@ void grc_cmd_task(void*arg)
     fill_solid(RGBleds, 6, myRGBcolor6);
     FastLED.show();
   };
-
   char msg[MAX_GRC_MSG_LEN];
-  for (;;) {
+    for (;;) {
     size_t length = xMessageBufferReceive(xGrcCmdBuffer, &msg, MAX_GRC_MSG_LEN, portMAX_DELAY);
     std::string value(msg, length);
     const std::string::size_type coords_offset = value.find("XY"); 
@@ -182,8 +310,7 @@ void grc_cmd_task(void*arg)
 
     //********************************GRC voice command******************************************
     if (!imu_control_mode) {
-      Serial.printf("Its characteristic value is: %s\n", value.c_str());
-      if (value == "GO FORWARD")  //forward
+      if (value == "GO FORWARD" || value == "xiang qian zou")  //forward
       {
         leds[2] = CRGB::Green;
         leds[3] = CRGB::Green;
@@ -195,6 +322,40 @@ void grc_cmd_task(void*arg)
         fill_solid(leds, 4, CRGB::Black);
         FastLED.show();
       }
+            if (value == "DO DANCE") {
+        dance_mode = true;
+        Serial.println("Dance mode ON");
+      }
+
+      if (value == "STOP DANCE") {
+        dance_mode = false;
+        Serial.println("Dance mode OFF");
+        Motor(0,0,0,0);
+        fill_solid(leds, 4, CRGB::Black);
+        FastLED.show();
+      }
+      if (value == "DANCE TANGO") {
+
+      Motor(160, 0, 160, 0);   
+      delay(500);              
+      Motor(0,0,0,0);
+      delay(100);
+
+      Motor(Speed, 0, 0, Speed);   
+      delay(calcTurnTime(180));    
+      Motor(0,0,0,0);
+      delay(100);
+
+      Motor(0,160,0,160);      
+      delay(500);
+      Motor(0,0,0,0);
+      delay(100);
+
+      Motor(Speed, 0, 0, Speed);
+      delay(calcTurnTime(180));
+      Motor(0,0,0,0);
+    }
+
 
       if (value == "GO BACK")  //backward
       {
@@ -232,6 +393,56 @@ void grc_cmd_task(void*arg)
         fill_solid(leds, 4, CRGB::Black);
         FastLED.show();
       }
+      if (value == "DO SQUARE")
+      {
+      int tForward = calcTurnTime(0); 
+      for (int i = 0; i < 4; ++i) {
+        Motor(float(160) * speed, 0, float(160) * speed, 0);
+        delay(tForward > 0 ? tForward : 1200);
+        Motor(0, 0, 0, 0);
+        delay(pauseTime);
+        Motor(Speed, 0, 0, Speed);
+        delay(calcTurnTime(95));
+        Motor(0, 0, 0, 0);
+        delay(pauseTime);
+        }
+      }
+      if (value == "DO TRIANGLE"){
+        int tForward = calcTurnTime(0);
+        for (int i = 0; i < 3; ++i) {
+          Motor(float(160) * speed, 0, float(160) * speed, 0);
+          delay(tForward > 0 ? tForward : 1200);
+          Motor(0,0,0,0);
+          delay(pauseTime);
+          Motor(Speed, 0, 0, Speed);
+          delay(calcTurnTime(125));
+          Motor(0,0,0,0);
+          delay(pauseTime);
+        }
+      }
+      if (value == "DO SNAKE") {
+      int tForward = calcTurnTime(0) > 0 ? calcTurnTime(0) : 200;
+      const int snakeAngle = 90;
+      const int segments = 15;
+      Motor(0,  Speed,  Speed, 0);
+      delay(calcTurnTime(45));
+      Motor(0, 0, 0, 0);
+      for (int i = 0; i < segments; ++i) {
+        Motor(float(160) * speed, 0, float(160) * speed, 0);
+        delay(tForward);
+        Motor(0, 0, 0, 0);
+        delay(50);
+
+        if (i % 2 == 0) {
+          Motor( Speed, 0, 0,  Speed);
+        } else {
+          Motor(0,  Speed + 3,  Speed + 30, 0);
+        }
+        delay(calcTurnTime(snakeAngle));
+        Motor(0, 0, 0, 0);
+        delay(50);
+      }
+    }
 
       if (value == "FASTER SPEED")  // change speed
       {
@@ -406,7 +617,7 @@ bool ConnectToServer(void) {
   Serial.println("Obtaining the function successfully");
   // If the characteristic value can be read, read the data
   if (pRemoteCharacteristic->canRead()) {
-    value = pRemoteCharacteristic->readValue();
+    String value = pRemoteCharacteristic->readValue();
     //    Serial.print("The characteristic value can be read and the current value is: ");
     //    Serial.println(value.c_str());
   }
@@ -560,45 +771,45 @@ void RGB_LED6_Close() {
 //infrared remote control
 void IR_remote_control() {
   switch (state_N) {
-    case 0xE718FF00:
+    case 0xE718FF00UL:
       IR_Flag = 11;
       Serial.println("Forward");
       break;
-    case 0xAD52FF00:
+    case 0xAD52FF00UL:
       IR_Flag = 22;
       Serial.println("Backward");
       break;
-    case 0xF708FF00:
+    case 0xF708FF00UL:
       IR_Flag = 33;
       Serial.println("Turn left");
       break;
-    case 0xA55AFF00:
+    case 0xA55AFF00UL:
       IR_Flag = 44;
       Serial.println("Turn right");
       break;
-    case 0xE31CFF00:
+    case 0xE31CFF00UL:
       IR_Flag = 55;
       Serial.println("Stop");
       break;
-    case 0xBA45FF00:  //1
+    case 0xBA45FF00UL:  //1
       IR_Flag = 1;
       break;
-    case 0xB946FF00:  //2
+    case 0xB946FF00UL:  //2
       IR_Flag = 2;
       break;
-    case 0xB847FF00:  //3
+    case 0xB847FF00UL:  //3
       IR_Flag = 3;
       break;
-    case 0xBB44FF00:  //4
+    case 0xBB44FF00UL:  //4
       IR_Flag = 4;
       break;
-    case 0xE619FF00:  //0
+    case 0xE619FF00UL:  //0
       IR_Flag = 0;
       break;
-    case 0xE916FF00:  //*
+    case 0xE916FF00UL:  //*
       IR_Flag = 6;
       break;
-    case 0xF20DFF00:  //#
+    case 0xF20DFF00UL:  //#
       IR_Flag = 7;
       break;
   }
@@ -667,9 +878,13 @@ void Find_light_ceshi() {
 void setup() {
   Serial.begin(115200);
   //Buzzer
-  pinMode(33, OUTPUT);
-  ledcSetup(2, 5000, 8);
-  ledcAttachPin(33, 2);
+  const uint8_t BUZZER_PIN  = 33;
+const uint32_t BUZZER_FREQ = 5000;  // базовая ШИМ-частота, 5 кГц
+const uint8_t  BUZZER_RES  = 8;     // 8‑бит разрешение
+
+if (!ledcAttach(BUZZER_PIN, BUZZER_FREQ, BUZZER_RES)) {
+  Serial.println("Ошибка: не удалось настроить LEDC для пина 33");
+}
   //Patrol
   pinMode(QTI_L, INPUT);
   pinMode(QTI_R, INPUT);
@@ -696,10 +911,13 @@ void setup() {
   u8g2.setFont(u8g2_font_ncenB14_tr);
   u8g2.setFontDirection(0);
   //Bind wheels
-  for (int i = 12; i <= 15; i++) {  //Motor port is 12,13,14,15
-    ledcSetup(i, 255, 8);           //leds Setting (channel, frequency, number of bits)
-    ledcAttachPin(i, i);            //Motor port binding corresponding channel
+  for (int pin = 12; pin <= 15; pin++) {  // Motor ports 12,13,14,15
+  // Настраиваем каждый пин на 255 Гц, 8 бит
+  if (!ledcAttach(pin, 255, 8)) {
+    Serial.printf("Ошибка настройки LEDC на пине %d\n", pin);
+    // можно добавить обработку ошибки, например, бесконечный цикл
   }
+}
   //infrared remote control
   irrecv.enableIRIn();
   pinMode(RECV_PIN, INPUT);
@@ -715,6 +933,12 @@ void setup() {
   xPlayMusicSemaphore = xSemaphoreCreateBinary();
   xDisconnectedSemaphore = xSemaphoreCreateBinary();
   xGrcCmdBuffer = xMessageBufferCreate(MAX_GRC_MSG_LEN * 5);
+  xMusicQueue = xQueueCreate(20, sizeof(MusicNoteEvent));
+  if (xMusicQueue == NULL) {
+    Serial.println("Ошибка: не удалось создать xMusicQueue");
+  } else {
+    xTaskCreate(dance_task, "dance_task", 2048, NULL, 1, NULL);
+  }
   xTaskCreate(play_music_task, "play_music_task", 1024, NULL, 1, NULL);
   xTaskCreate(grc_cmd_task, "grc_cmd_task", 4 * 1024, NULL, 1, NULL);
 }
@@ -767,7 +991,6 @@ void loop() {
         FastLED.show();
         Motor(0, 0, 0, 0);
         ledcWrite(2, 0);
-
         connected = true;
       } else {
         doSacn = true;
