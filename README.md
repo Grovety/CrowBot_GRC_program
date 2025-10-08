@@ -1,4 +1,4 @@
-# Robot Control Implementation Using the CrowBot-BOLT Robot 
+# VoxControl Implementation Using the CrowBot-BOLT Robot 
 
 [Quick Start](https://grovety.com/CrowBot/)
 
