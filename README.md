@@ -1,6 +1,5 @@
 # VoxControl Implementation Using the CrowBot-BOLT Robot 
 
-[Quick Start](https://grovety.com/CrowBot/)
 
 [File of the program](https://github.com/Grovety/CrowBot_GRC_program/blob/main/Bolt_grc_program.ino)
 
