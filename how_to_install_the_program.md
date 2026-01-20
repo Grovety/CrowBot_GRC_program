@@ -7,7 +7,7 @@
 
 4.	Open the installation package, select the installation path, and install the Arduino software
    
-   5.	Download the file [Bolt_grc_program.ino](https://github.com/Grovety/CrowBot_GRC_program/blob/main/Bolt_grc_program.ino) and open it.
+   5.	Download the file [stopwatch.ino](https://github.com/Grovety/CrowBot_GRC_program/blob/main/stopwatch.ino) and open it.
       
  ![2](https://github.com/user-attachments/assets/f710330b-5f63-4de0-ab1e-d5f6fa39423d)
 
@@ -29,7 +29,7 @@ https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32
 
 8.	Install the esp32 hardware package. 
 Click Tools ->Board ->Board Manager. 
-Then search for esp, find esp32 by Espressif Systems, **choose the 2.0.3 version**, and click Install.
+Then search for esp, find esp32 by Espressif Systems, **choose the new version**, and click Install.
  ![6](https://github.com/user-attachments/assets/469785b9-dd04-46ea-8a75-9101cb0095e6)
 
 

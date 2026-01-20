@@ -1,11 +1,35 @@
-# VoxControl Implementation Using the CrowBot-BOLT Robot 
+# Control for CrowBot with VoxControl
 
+This project demonstrates how CrowBot can be controlled using VoxControl, combining natural voice input and motion-based control into a single, intuitive interface.
 
-[File of the program](https://github.com/Grovety/CrowBot_GRC_program/blob/main/Bolt_grc_program.ino)
+## Control concept
 
-[How to flash the program](https://github.com/Grovety/CrowBot_GRC_program/blob/main/how_to_install_the_program.md)
+- Voice control — issue commands in natural language, without memorizing fixed phrases
 
-[Comands List](https://grovety.com/CrowBot/)
+- Motion control — steer and adjust behavior using device orientation (IMU)
+
+### Natural voice control
+
+Instead of predefined commands, VoxControl understands intent and variations in speech, enabling more flexible and human-like interaction.
+(See the[AI Voice Control Without Memorizing Commands](https://www.hackster.io/Grovety/ai-voice-control-without-memorizing-commands-36bf6d))
+
+## Extending behavior
+
+The same approach can be extended with new commands and behaviors, enabling more advanced VoiceAI-driven interactions.
+(See the [next-gen VoiceAI overview article](https://www.hackster.io/Grovety/next-gen-voiceai-opening-new-ground-for-makers-to-explore-52813d))
+
+## Example: CrowBot Racing
+
+A racing scenario where voice commands are used to start, control, and manage the robot during a race.
+(See the [CrowBot Racing article for details](https://www.hackster.io/Grovety/crowbot-racing-turn-your-robot-into-a-track-champion-9b9187))
+
+## What you need
+
+- [CrowBot](https://www.elecrow.com/crowbot-bolt-programmable-smart-robot-car-steam-robot-kit.html)
+
+- [VoxControl kit](https://www.elecrow.com/grc-ai-robot-control.html)
+
+- [Firmware for CrowBot](https://github.com/Grovety/CrowBot_GRC_program/blob/main/how_to_install_the_program.md)
 
 ## How it works
 
