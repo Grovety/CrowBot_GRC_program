@@ -16,6 +16,9 @@ This project demonstrates how CrowBot can be controlled using VoxControl, combin
 Instead of predefined commands, VoxControl understands intent and variations in speech, enabling more flexible and human-like interaction.
 (See the [AI Voice Control Without Memorizing Commands](https://www.hackster.io/Grovety/ai-voice-control-without-memorizing-commands-36bf6d))
 
+<img width="1536" height="1024" alt="ChatGPT Image 20 янв  2026 г , 17_34_04" src="https://github.com/user-attachments/assets/038985ce-6822-4dbd-9b98-dd9a55f0383c" />
+
+
 ## Extending behavior
 
 The same approach can be extended with new commands and behaviors, enabling more advanced VoiceAI-driven interactions.
