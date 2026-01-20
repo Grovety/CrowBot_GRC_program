@@ -43,7 +43,9 @@ Once you flash our program to the CrowBot  (see [how to do it](https://github.co
 
 1. Turn on the robot and the VoxControl.  
 2. Enable Bluetooth on the robot by sliding the switch.  
-3. The robot will automatically connect to the VoxControl, and a connection icon will appear on the board.  
+3. The robot will automatically connect to the VoxControl, and a connection icon will appear on the board.
+
+https://www.hackster.io/Grovety/next-gen-voiceai-opening-new-ground-for-makers-to-explore-52813d
 
 ![RC2](https://github.com/user-attachments/assets/907467d8-6e76-4b28-b7d1-531149297eba)
 
