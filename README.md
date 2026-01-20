@@ -33,11 +33,11 @@ A racing scenario where voice commands are used to start, control, and manage th
 
 ## How it works
 
-Once you flash our program to the CrowBot  (see [how to do it](https://github.com/Grovety/CrowBot_GRC_program/blob/main/how_to_install_the_program.md)), the robot can receive commands from the DevBoard via Bluetooth.  
+Once you flash our program to the CrowBot  (see [how to do it](https://github.com/Grovety/CrowBot_GRC_program/blob/main/how_to_install_the_program.md)), the robot can receive commands from the Vox Control Board via Bluetooth.  
 
-1. Turn on the robot and the DevBoard.  
+1. Turn on the robot and the VoxControl.  
 2. Enable Bluetooth on the robot by sliding the switch.  
-3. The robot will automatically connect to the DevBoard, and a connection icon will appear on the board.  
+3. The robot will automatically connect to the VoxControl, and a connection icon will appear on the board.  
 
 ![RC2](https://github.com/user-attachments/assets/907467d8-6e76-4b28-b7d1-531149297eba)
 
@@ -55,7 +55,7 @@ Demo: https://youtu.be/RoclNdVzP7A
 
 The board "listens" to user commands through its built-in microphones and recognizes them using a neural network. The recognized command is transmitted to CrowBOT.
 
-### Commands
+### Commands examples
 | Voice Command     | Action |
 |------------------|----------------------------------------------------------------------------------------------------------------------------------|
 | **ROBOT WAKE UP**   | The DevBoard wakes up. The robot performs no action. |  
@@ -81,9 +81,9 @@ To activate tilt control mode, say 'Manual Control' or press the USER button.
 
 Once activated, the display on the DevBoard will update, and the robot will no longer respond to voice commands for movement.
 
-> Make sure to place the DevBoard on a flat surface before starting, as it will calibrate when entering tilt control mode. When you see a circle on two intersecting lines appear on the screen, the calibration is done, and you’re ready to start controlling the robot.
+> Make sure to place the Board on a flat surface before starting, as it will calibrate when entering tilt control mode. When you see a circle on two intersecting lines appear on the screen, the calibration is done, and you’re ready to start controlling the robot.
 
-Tilt the DevBoard forward, backward, left, or right to control the robot's movement. The tilt angle determines the robot's speed.
+Tilt the Board forward, backward, left, or right to control the robot's movement. The tilt angle determines the robot's speed.
 
 You can use voice commands 'Play Music' and 'Lights On' or 'Lights Off' in Tilt mode.
 
