@@ -21,8 +21,11 @@ Instead of predefined commands, VoxControl understands intent and variations in 
 
 ## Extending behavior
 
-The same approach can be extended with new commands and behaviors, enabling more advanced VoiceAI-driven interactions.
+The same approach can be extended with new commands and behaviors by adding your own words and phrases as plain text, allowing the robot to understand and respond to voice commands that were not predefined at design time.
 (See the [next-gen VoiceAI overview article](https://www.hackster.io/Grovety/next-gen-voiceai-opening-new-ground-for-makers-to-explore-52813d))
+
+<img width="831" height="542" alt="ChatGPT Image 20 янв  2026 г , 17_43_28" src="https://github.com/user-attachments/assets/5d2968ce-89e9-44d7-9cf9-c8db6b37a454" />
+
 
 ## Example: CrowBot Racing
 
@@ -36,6 +39,9 @@ A racing scenario where voice commands are used to start, control, and manage th
 - [VoxControl kit](https://www.elecrow.com/grc-ai-robot-control.html)
 
 - [Firmware for CrowBot](https://github.com/Grovety/CrowBot_GRC_program/blob/main/how_to_install_the_program.md)
+
+<img width="1536" height="1024" alt="image" src="https://github.com/user-attachments/assets/5ecb42c2-6b69-4baf-8fc9-17736f56d969" />
+
 
 ## How it works
 
