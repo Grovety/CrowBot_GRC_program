@@ -8,6 +8,9 @@ This project demonstrates how CrowBot can be controlled using VoxControl, combin
 
 - Motion control — steer and adjust behavior using device orientation (IMU)
 
+<img width="1536" height="398" alt="a28ff35b-63ae-430b-9486-89ad91f1bdf3" src="https://github.com/user-attachments/assets/920729c6-ba86-4054-aa79-3d07a7900c86" />
+
+
 ### Natural voice control
 
 Instead of predefined commands, VoxControl understands intent and variations in speech, enabling more flexible and human-like interaction.
